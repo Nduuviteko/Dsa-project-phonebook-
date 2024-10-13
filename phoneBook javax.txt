@@ -1,0 +1,243 @@
+import javax.swing.*;
+import java .awt.*;
+import java.awt.event.*;
+
+public class PhonebookGUI {
+    private class Contact {
+        String name;
+        String number;
+
+        public Contact(String name, String number) {
+            this.name = name;
+            this.number = number;
+        }
+    }
+
+    private Contact[] contacts;
+    private int size;
+    private int capacity;
+
+    private JFrame frame;
+    private JTextField nameField;
+    private JTextField numberField;
+    private JTextArea displayArea;
+
+    public PhonebookGUI(int capacity) {
+        this.contacts = new Contact[capacity];
+        this.size = 0;
+        this.capacity = 3;
+
+        createGUI();
+    }
+
+    private void createGUI() {
+        frame = new JFrame("Phonebook");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(2, 2));
+
+        inputPanel.add(new JLabel("Contact Name:"));
+        nameField = new JTextField();
+        inputPanel.add(nameField);
+
+        inputPanel.add(new JLabel("Contact Number:"));
+        numberField = new JTextField();
+        inputPanel.add(numberField);
+
+        frame.add(inputPanel, BorderLayout.NORTH);
+
+        displayArea = new JTextArea();
+        displayArea.setRows(10);
+        displayArea.setColumns(10);
+        frame.add(new JScrollPane(displayArea), BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel();
+        GridLayout gridLayout = new GridLayout(1,5);
+        buttonPanel.setLayout(gridLayout);
+        
+
+        JButton insertButton = new JButton();
+        insertButton.setText("Insert");
+        insertButton.addActionListener(new InsertActionListener());
+        buttonPanel.add(insertButton);
+
+        JButton searchButton = new JButton();
+        searchButton.setText("Search");
+        searchButton.addActionListener(new SearchActionListener());
+        buttonPanel.add(searchButton);
+
+        JButton updateButton = new JButton();
+        updateButton.setText("Update");
+        updateButton.addActionListener(new UpdateActionListener());
+        buttonPanel.add(updateButton);
+
+        JButton deleteButton = new JButton();
+        deleteButton.setText("Delete");
+        deleteButton.addActionListener(new DeleteActionListener());
+        buttonPanel.add(deleteButton);
+
+        JButton sortButton = new JButton();
+        sortButton.setText("Sort");
+        sortButton.addActionListener(new SortActionListener());
+        buttonPanel.add(sortButton);
+
+        frame.add(buttonPanel, BorderLayout.SOUTH);
+
+        frame.pack();
+        frame.setVisible(true);
+    }
+    
+
+  private class InsertActionListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String name = nameField.getText();
+        String number = numberField.getText();
+
+        if (number.length() != 10) {
+            JOptionPane.showMessageDialog(frame, "Error: Phone number must contain 10 digits!.");
+            return;
+        }
+
+        if (!isNumberUnique(number)) {
+            JOptionPane.showMessageDialog(frame, "Error: Entered phone number already exists!.");
+            return;
+        }
+
+        if (size < capacity) {
+            Contact newContact = new Contact(name, number);
+            contacts[size] = newContact;
+            size++;
+
+            displayArea.append("Name: " + name + ", Number: " + number + "\n");
+        } else {
+            JOptionPane.showMessageDialog(frame, "Error: Phonebook is full.");
+        }
+
+        nameField.setText("");
+        numberField.setText("");
+    }
+}
+
+private boolean isNumberUnique(String number) {
+    for (int i = 0; i < size; i++) {
+        if (contacts[i].number.equals(number)) {
+            return false;
+        }
+    }
+    return true;
+}
+    
+
+    private class SearchActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String name = nameField.getText();
+            String number = searchContact(name);
+
+            if (number != null) {
+                JOptionPane.showMessageDialog(frame, "Name: " + name + ", Number: " + number);
+            } else {
+                JOptionPane.showMessageDialog(frame, "Name not found.");
+            }
+
+            nameField.setText("");
+        }
+    }
+
+    private class UpdateActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String name = nameField.getText();
+            String newNumber = numberField.getText();
+
+            updateContact(name, newNumber);
+
+            displayArea.setText("");
+            for (int i = 0; i < size; i++) {
+                displayArea.append("Name: " + contacts[i].name + ", Number: " + contacts[i].number + "\n");
+            }
+
+            nameField.setText("");
+            numberField.setText("");
+        }
+    }
+
+    private class DeleteActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String name = nameField.getText();
+
+            deleteContact(name);
+
+            displayArea.setText("");
+            for (int i = 0; i < size; i++) {
+                displayArea.append("Name: " + contacts[i].name + ", Number: " + contacts[i].number + "\n");
+            }
+
+            nameField.setText("");
+        }
+    }
+
+    private class SortActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            sortContacts();
+
+            displayArea.setText("");
+            for (int i = 0; i < size; i++) {
+                displayArea.append("Name: " + contacts[i].name + ", Number: " + contacts[i].number + "\n");
+            }
+        }
+    }
+
+    private String searchContact(String name) {
+        for (int i = 0; i < size; i++) {
+            if (contacts[i].name.equals(name)) {
+                return contacts[i].number;
+                
+
+ }
+        }
+        return null;
+    }
+
+    private void deleteContact(String name) {
+        for (int i = 0; i < size; i++) {
+            if (contacts[i].name.equals(name)) {
+                for (int j = i; j < size - 1; j++) {
+                    contacts[j] = contacts[j + 1];
+                }
+                size--;
+                return;
+            }
+        }
+    }
+
+    private void updateContact(String name, String newNumber) {
+        for (int i = 0; i < size; i++) {
+            if (contacts[i].name.equals(name)) {
+                contacts[i].number = newNumber;
+                return;
+            }
+        }
+    }
+
+    private void sortContacts() {
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = 0; j < size - i - 1; j++) {
+                if (contacts[j].name.compareTo(contacts[j + 1].name) > 0) {
+                    Contact temp = contacts[j];
+                    contacts[j] = contacts[j + 1];
+                    contacts[j + 1] = temp;
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        PhonebookGUI phonebook = new PhonebookGUI(10);
+    }
+}
